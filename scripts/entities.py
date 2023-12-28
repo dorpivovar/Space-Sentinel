@@ -3,6 +3,7 @@ import pygame
 
 class PhysicsEntity:
     def __init__(self, game, e_type, pos, size):
+        pygame.sprite.Sprite.__init__(self)
         self.game = game
         self.type = e_type
         self.pos = list(pos)
@@ -76,6 +77,8 @@ class Player(PhysicsEntity):
     def __init__(self, game, pos, size):
         super().__init__(game, 'player', pos, size)
         self.air_time = 0
+        self.jumps = 1
+        self.shooting = False
 
     def update(self, tilemap, movement=(0, 0)):
         super().update(tilemap, movement=movement)
@@ -83,10 +86,30 @@ class Player(PhysicsEntity):
         self.air_time += 1
         if self.collisions['down']:
             self.air_time = 0
+            self.jumps = 1
 
         if self.air_time > 4:
             self.set_action('jump')
         elif movement[0] != 0:
             self.set_action('run')
+            # self.size = (10, 11)
+        elif self.shooting:
+            self.set_action('shoot')
+            self.size = (10, 10)
         else:
             self.set_action('idle')
+            self.size = (10, 11)
+
+    def jump(self):
+        if self.jumps:
+            self.velocity[1] = -3
+            self.jumps -= 1
+            self.air_time = 5
+
+    def shoot(self):
+        if self.shooting:
+            self.shooting = False
+        else:
+            self.shooting = True
+
+
