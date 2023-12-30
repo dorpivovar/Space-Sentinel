@@ -32,6 +32,7 @@ class Game:
             'player/run': Animation(load_images('entities/player/run'), img_dur=15),
             'player/jump': Animation(load_images('entities/player/jump')),
             'player/shoot': Animation(load_images('entities/player/shoot')),
+            'bullet': load_image('entities/bullet.png'),
         }
 
         self.clouds = Clouds(self.assets['clouds'], count=16)
@@ -41,6 +42,8 @@ class Game:
         self.tilemap.load('map.json')
 
         self.scroll = [0, 0]
+        self.bullet = pygame.image.load('data/images/entities/bullet.png').convert_alpha()
+        self.bullets = list()
 
     def run(self):
         while True:
@@ -73,6 +76,14 @@ class Game:
                         self.player.jump()
                     if event.key == pygame.K_z:
                         self.player.shoot()
+                        if self.player.flip:
+                            self.bullets.append([
+                                self.bullet.get_rect(top=self.player.pos[1] - render_scroll[1],
+                                                     left=self.player.pos[0] - render_scroll[0] - 15), -1])
+                        else:
+                            self.bullets.append([
+                                self.bullet.get_rect(top=self.player.pos[1] - render_scroll[1],
+                                                     left=self.player.pos[0] - render_scroll[0] + 15), 1])
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_LEFT:
                         self.movement[0] = False
@@ -82,7 +93,19 @@ class Game:
                         self.moving_right = False
                     if event.key == pygame.K_z:
                         self.player.shoot()
-
+            if self.bullets:
+                for (i, bullet) in enumerate(self.bullets):
+                    flip = False
+                    if bullet[1] == -1:
+                        flip = True
+                    else:
+                        flip = False
+                    bullet[0].x += 3 * bullet[1]
+                    self.display.blit(pygame.transform.flip(self.bullet, flip, False),
+                                      (bullet[0].x, bullet[0].y))
+                    if bullet[0].x > (640 / 2) or bullet[0].x < 0:
+                        self.bullets.pop(i)
+                    print(bullet[0].x)
             self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0))
             pygame.display.update()
             self.clock.tick(60)

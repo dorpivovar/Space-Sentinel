@@ -78,7 +78,7 @@ class Player(PhysicsEntity):
         super().__init__(game, 'player', pos, size)
         self.air_time = 0
         self.jumps = 1
-        self.shooting = False
+        self.is_shooting = False
 
     def update(self, tilemap, movement=(0, 0)):
         super().update(tilemap, movement=movement)
@@ -93,7 +93,7 @@ class Player(PhysicsEntity):
         elif movement[0] != 0:
             self.set_action('run')
             # self.size = (10, 11)
-        elif self.shooting:
+        elif self.is_shooting:
             self.set_action('shoot')
             self.size = (10, 10)
         else:
@@ -107,9 +107,45 @@ class Player(PhysicsEntity):
             self.air_time = 5
 
     def shoot(self):
-        if self.shooting:
-            self.shooting = False
+        if self.is_shooting:
+            self.is_shooting = False
         else:
-            self.shooting = True
+            self.is_shooting = True
+
+    # def shooting(self, bullets_group):
+    #     if not self.is_shooting:
+    #         bullet = Bullet(self.rect.centerx, self.rect.y)  # Создание пули в позиции игрока
+    #         bullets_group.add(bullet)
 
 
+# class Bullet:
+#     def __init__(self, game, pos):
+#         self.game = game
+#         # self.type = e_type
+#         self.pos = list(pos)
+#         # self.size = size
+#         self.image = self.game.assets['bullet']
+#         self.rect = self.image.img().get_rect()
+#         self.speed = 7
+#
+#     def move(self):
+#         self.rect.y -= self.speed
+#
+#     def update(self, surface):
+#         surface.blit(self.image.img(), self.rect)
+
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.image.load("bullet.png").convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.speed = 5  # Скорость пули
+
+    def update(self):
+        self.rect.y -= self.speed  # Движение пули вверх
+
+        # Если пуля выходит за границы экрана, уничтожаем её
+        if self.rect.bottom < 0:
+            self.kill()
