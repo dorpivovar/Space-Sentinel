@@ -20,7 +20,7 @@ def load_images(path):
 
 def load_level(filename):
     filename = "data/levels/" + filename
-    # читаем уровень, убирая символы перевода строки
+    # читаем уровень, убирая символы перевода строкиz
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
 

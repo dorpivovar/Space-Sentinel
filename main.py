@@ -1,9 +1,8 @@
 import sys
-
 import pygame
 
 from scripts.utils import load_image, load_images, Animation
-from scripts.entities import PhysicsEntity, Player
+from scripts.entities import Player, Enemy
 from scripts.tilemap import Tilemap
 from scripts.clouds import Clouds
 
@@ -28,6 +27,9 @@ class Game:
             'stone': load_images('tiles/stone'),
             'background': load_image('background.png'),
             'clouds': load_images('clouds'),
+            'enemy/idle': Animation(load_images('entities/enemy/idle'), img_dur=6),
+            'enemy/run': Animation(load_images('entities/enemy/run'), img_dur=15),
+            'spawners': load_images('tiles/spawners'),
             'player/idle': Animation(load_images('entities/player/idle'), img_dur=6),
             'player/run': Animation(load_images('entities/player/run'), img_dur=15),
             'player/jump': Animation(load_images('entities/player/jump')),
@@ -38,12 +40,27 @@ class Game:
         self.clouds = Clouds(self.assets['clouds'], count=16)
         self.player = Player(self, (50, 50), (10, 11))
 
-        self.tilemap = Tilemap(self, tile_size=16)
-        self.tilemap.load('map.json')
-
-        self.scroll = [0, 0]
         self.bullet = pygame.image.load('data/images/entities/bullet.png').convert_alpha()
         self.bullets = list()
+
+        self.tilemap = Tilemap(self, tile_size=16)
+        self.load_level(0)
+
+    def load_level(self, map_id):
+        self.tilemap.load('data/maps/' + str(map_id) + '.json')
+
+        self.leaf_spawners = []
+        for tree in self.tilemap.extract([('large_decor', 2)], keep=True):
+            self.leaf_spawners.append(pygame.Rect(4 + tree['pos'][0], 4 + tree['pos'][1], 23, 13))
+
+        self.enemies = list()
+        for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1)]):
+            if spawner['variant'] == 0:
+                self.player.pos = spawner['pos']
+            else:
+                self.enemies.append(Enemy(self, spawner['pos'], (10, 10)))
+
+        self.scroll = [0, 0]
 
     def run(self):
         while True:
@@ -57,6 +74,10 @@ class Game:
             self.clouds.render(self.display, offset=render_scroll)
 
             self.tilemap.render(self.display, offset=render_scroll)
+
+            for enemy in self.enemies.copy():
+                enemy.update(self.tilemap, (0, 0))
+                enemy.render(self.display, offset=render_scroll)
 
             self.player.update(self.tilemap, (self.movement[1] - self.movement[0], 0))
             self.player.render(self.display, offset=render_scroll)
@@ -105,7 +126,7 @@ class Game:
                                       (bullet[0].x, bullet[0].y))
                     if bullet[0].x > (640 / 2) or bullet[0].x < 0:
                         self.bullets.pop(i)
-                    print(bullet[0].x)
+                    # print(bullet[0].x)
             self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0))
             pygame.display.update()
             self.clock.tick(60)

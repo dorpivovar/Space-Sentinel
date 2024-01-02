@@ -1,3 +1,4 @@
+import random
 import pygame
 
 
@@ -31,7 +32,7 @@ class PhysicsEntity:
 
         self.pos[0] += frame_movement[0]
         entity_rect = self.rect()
-        for rect in tilemap.physics_rect_around(self.pos):
+        for rect in tilemap.physics_rects_around(self.pos):
             if entity_rect.colliderect(rect):
                 if frame_movement[0] > 0:
                     entity_rect.right = rect.left
@@ -43,7 +44,7 @@ class PhysicsEntity:
 
         self.pos[1] += frame_movement[1]
         entity_rect = self.rect()
-        for rect in tilemap.physics_rect_around(self.pos):
+        for rect in tilemap.physics_rects_around(self.pos):
             if entity_rect.colliderect(rect):
                 if frame_movement[1] > 0:
                     entity_rect.bottom = rect.top
@@ -112,40 +113,35 @@ class Player(PhysicsEntity):
         else:
             self.is_shooting = True
 
-    # def shooting(self, bullets_group):
-    #     if not self.is_shooting:
-    #         bullet = Bullet(self.rect.centerx, self.rect.y)  # Создание пули в позиции игрока
-    #         bullets_group.add(bullet)
 
+class Enemy(PhysicsEntity):
+    def __init__(self, game, pos, size):
+        super().__init__(game, 'enemy', pos, size)
 
-# class Bullet:
-#     def __init__(self, game, pos):
-#         self.game = game
-#         # self.type = e_type
-#         self.pos = list(pos)
-#         # self.size = size
-#         self.image = self.game.assets['bullet']
-#         self.rect = self.image.img().get_rect()
-#         self.speed = 7
-#
-#     def move(self):
-#         self.rect.y -= self.speed
-#
-#     def update(self, surface):
-#         surface.blit(self.image.img(), self.rect)
+        self.walking = 0
 
+    def update(self, tilemap, movement=(0, 0)):
+        if self.walking:
+            if tilemap.solid_check((self.rect().centerx + (-7 if self.flip else 7), self.pos[1] + 23)):
+                movement = (movement[0] - 0.5 if self.flip else 0.5, movement[1])
+            else:
+                self.flip = not self.flip
+            self.walking = max(0, self.walking - 1)
+        elif random.random() < 0.01:
+            self.walking = random.randint(30, 120)
 
-class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__()
-        self.image = pygame.image.load("bullet.png").convert_alpha()
-        self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
-        self.speed = 5  # Скорость пули
+        super().update(tilemap, movement=movement)
 
-    def update(self):
-        self.rect.y -= self.speed  # Движение пули вверх
+        if movement[0] != 0:
+            self.set_action('run')
 
-        # Если пуля выходит за границы экрана, уничтожаем её
-        if self.rect.bottom < 0:
-            self.kill()
+        else:
+            self.set_action('idle')
+
+    def render(self, surface, offset=(0, 0)):
+        super().render(surface, offset=offset)
+
+        # if self.flip:
+        #     surface.blit(pygame.transform.flip(self.game.assets))
+        # else:
+        #     pass
