@@ -18,19 +18,6 @@ def load_images(path):
     return images
 
 
-# def load_level(filename):
-#     filename = "data/levels/" + filename
-#     # читаем уровень, убирая символы перевода строкиz
-#     with open(filename, 'r') as mapFile:
-#         level_map = [line.strip() for line in mapFile]
-#
-#     # и подсчитываем максимальную длину
-#     max_width = max(map(len, level_map))
-#
-#     # дополняем каждую строку пустыми клетками ('.')
-#     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
-
-
 class Animation:
     def __init__(self, images, img_dur=5, loop=True):
         self.images = images
@@ -40,13 +27,16 @@ class Animation:
         self.frame = 0
 
     def copy(self):
-        return Animation(self.images, self.image_duration, self.loop)
+        return Animation(self.images,
+                         self.image_duration,
+                         self.loop)
 
     def update(self):
         if self.loop:
             self.frame = (self.frame + 1) % (self.image_duration * len(self.images))
         else:
-            self.frame = min(self.frame + 1, self.image_duration * len(self.images) - 1)
+            self.frame = min(self.frame + 1,
+                             self.image_duration * len(self.images) - 1)
             if self.frame >= self.image_duration * len(self.images) - 1:
                 self.done = True
 
