@@ -51,7 +51,6 @@ class Game:
         font = pygame.font.Font(None, 36)
         text = font.render("Choose a Level: 1, 2, or 3", True, (255, 255, 255))
         text_rect = text.get_rect(center=(320, 240))
-        # dsd
         self.screen.blit(self.start_screen_bg, (0, 0))
 
         self.screen.blit(text, text_rect)
@@ -77,10 +76,6 @@ class Game:
     def load_level(self, map_id):
         self.tilemap.load('data/maps/' + str(map_id) + '.json')
 
-        # self.leaf_spawners = []
-        # for tree in self.tilemap.extract([('large_decor', 2)], keep=True):
-        #     self.leaf_spawners.append(pygame.Rect(4 + tree['pos'][0], 4 + tree['pos'][1], 23, 13))
-
         self.enemies = list()
         for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1)]):
             if spawner['variant'] == 0:
@@ -90,13 +85,24 @@ class Game:
 
         self.scroll = [0, 0]
 
+    def is_dead(self, player, level, bullets):
+        if player.pos[1] > 480:
+            self.kill_player(level, bullets)
+
+    def kill_player(self, level, bullets):
+        self.load_level(level)
+        bullets.clear()
+
     def run(self):
         self.show_start_screen()  # Показываем стартовый экран
 
         # Если выбран уровень, загружаем его
         if self.current_level is not None:
             self.load_level(self.current_level)
+
         while True:
+            self.is_dead(self.player, self.current_level, self.bullets)
+            # print(self.player.pos)
             self.display.blit(self.assets['background'], (0, 0))
 
             self.scroll[0] += (self.player.rect().centerx - self.display.get_width() / 2 - self.scroll[0]) / 30
@@ -138,6 +144,10 @@ class Game:
                             self.bullets.append([
                                 self.bullet.get_rect(top=self.player.pos[1] - render_scroll[1],
                                                      left=self.player.pos[0] - render_scroll[0] + 15), 1])
+                    if event.key == pygame.K_ESCAPE:
+                        self.kill_player(self.current_level, self.bullets)
+                        self.show_start_screen()
+
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_LEFT:
                         self.movement[0] = False
@@ -149,15 +159,7 @@ class Game:
                         self.player.shoot()
             if self.bullets:
                 bullets_to_remove = list()
-                # for (i, bullet) in enumerate(self.bullets):
-                #     flip = False
-                #     if bullet[1] == -1:
-                #         flip = True
-                #     else:
-                #         flip = False
-                #     bullet[0].x += 3 * bullet[1]
-                #     bullet_rect = pygame.Rect(bullet[0].x, bullet[0].y, self.bullet.get_width(),
-                #                               self.bullet.get_height())
+
                 for i, bullet in enumerate(self.bullets):
                     flip = bullet[1] == -1
                     bullet[0].x += 3 * bullet[1]
@@ -175,26 +177,7 @@ class Game:
 
                 for index in sorted(bullets_to_remove, reverse=True):
                     del self.bullets[index]
-                    # self.display.blit(pygame.transform.flip(self.bullet, flip, False),
-                    #                   (bullet[0].x, bullet[0].y))
-                    # self.display.blit(pygame.transform.flip(self.bullet, flip, False), (bullet[0].x, bullet[0].y))
-                    # if bullet[0].x > (640 / 2) or bullet[0].x < 0:
-                    # self.bullets.pop(i)
-                    # bullets_to_remove.append(i)
-                    # if self.enemies:
-                    #     for (index, enemy) in enumerate(self.enemies):
-                    #         if bullet[0].colliderect(enemy.rect()):
-                    #             self.enemies.pop(index)
-                    #             self.bullets.pop(i)
-                    # for enemy in self.enemies:
-                    #     if bullet_rect.colliderect(enemy.rect()):
-                    #         self.enemies.remove(enemy)
-                    #         bullets_to_remove.append(i)
-                    #
-                    # for index in sorted(bullets_to_remove, reverse=True):
-                    #     del self.bullets[index]
 
-                    # print(bullet[0].x)
             self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0))
             pygame.display.update()
             self.clock.tick(60)
