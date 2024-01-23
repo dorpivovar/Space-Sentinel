@@ -4,7 +4,6 @@ import pygame
 from scripts.utils import load_image, load_images, Animation
 from scripts.entities import Player, Enemy
 from scripts.tilemap import Tilemap
-from scripts.clouds import Clouds
 
 
 class Game:
@@ -28,7 +27,6 @@ class Game:
             'large_decor': load_images('tiles/large_decor'),
             'stone': load_images('tiles/stone'),
             'background': load_image('background.png'),
-            'clouds': load_images('clouds'),
             'enemy/idle': Animation(load_images('entities/enemy/idle'),
                                     img_dur=6),
             'enemy/run': Animation(load_images('entities/enemy/run'),
@@ -43,14 +41,13 @@ class Game:
             'bullet': load_image('entities/bullet.png'),
         }
 
-        self.clouds = Clouds(self.assets['clouds'],
-                             count=16)
         self.player = Player(self, (50, 50),
                              (10, 11))
 
         self.bullet = pygame.image.load('data/images/entities/bullet.png').convert_alpha()
         self.start_screen_bg = pygame.image.load('data/images/start_screen_background.png').convert()
         self.bullets = list()
+        self.level_chosen = False
 
         self.tilemap = Tilemap(self,
                                tile_size=16)
@@ -71,8 +68,8 @@ class Game:
                          text_rect)
         pygame.display.flip()
 
-        level_chosen = False
-        while not level_chosen:
+        self.level_chosen = False
+        while not self.level_chosen:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -80,13 +77,33 @@ class Game:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_1:
                         self.current_level = 0
-                        level_chosen = True
+                        self.level_chosen = True
                     elif event.key == pygame.K_2:
                         self.current_level = 1
-                        level_chosen = True
+                        self.level_chosen = True
                     elif event.key == pygame.K_3:
-                        self.current_level = 3
-                        level_chosen = True
+                        self.current_level = 2
+                        self.level_chosen = True
+
+    def complete_game(self):
+        font = pygame.font.Font(None,
+                                36)
+        text = font.render("Game Complete",
+                           True,
+                           (255, 255, 255))
+        text_rect = text.get_rect(center=(320,
+                                          240))
+        self.screen.blit(self.start_screen_bg,
+                         (0, 0))
+
+        self.screen.blit(text,
+                         text_rect)
+        pygame.display.flip()
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
 
     def load_level(self, map_id):
         self.tilemap.load('data/maps/' + str(map_id) + '.json')
@@ -106,13 +123,14 @@ class Game:
     def is_dead(self, player,
                 level,
                 bullets):
-        if player.pos[1] > 480:
+        if player.pos[1] > 600:
             self.kill_player(level,
                              bullets)
 
     def kill_player(self,
                     level,
                     bullets):
+
         self.load_level(level)
         bullets.clear()
 
@@ -124,27 +142,34 @@ class Game:
             self.load_level(self.current_level)
 
         while True:
+            if (self.current_level == 0 and self.player.pos[0] >= 1008 and self.player.pos[1] == 501
+                    and self.player.pos[0] <= 1046):
+                self.current_level = 1
+                self.load_level(self.current_level)
+            if (self.current_level == 1 and self.player.pos[0] >= 1008 and self.player.pos[1] == 309 and
+                    self.player.pos[0] <= 1046):
+                self.current_level = 2
+                self.load_level(self.current_level)
+            if (self.current_level == 2 and self.player.pos[0] >= 1136 and self.player.pos[1] == 213 and
+                    self.player.pos[0] <= 1142):
+                self.complete_game()
+
             self.is_dead(self.player,
                          self.current_level,
                          self.bullets)
-            # print(self.player.pos)
-            self.display.blit(self.assets['background'],
+            self.display.blit(pygame.transform.scale(self.assets['background'], (640, 480)),
                               (0, 0))
 
             self.scroll[0] += ((self.player.rect().centerx
-                               - self.display.get_width()
-                               / 2 - self.scroll[0])
+                                - self.display.get_width()
+                                / 2 - self.scroll[0])
                                / 30)
             self.scroll[1] += ((self.player.rect().centery
-                               - self.display.get_height()
-                               / 2 - self.scroll[1])
+                                - self.display.get_height()
+                                / 2 - self.scroll[1])
                                / 30)
             render_scroll = (int(self.scroll[0]),
                              int(self.scroll[1]))
-
-            self.clouds.update()
-            self.clouds.render(self.display,
-                               offset=render_scroll)
 
             self.tilemap.render(self.display,
                                 offset=render_scroll)
@@ -185,9 +210,8 @@ class Game:
                                 self.bullet.get_rect(top=self.player.pos[1] - render_scroll[1],
                                                      left=self.player.pos[0] - render_scroll[0] + 15), 1])
                     if event.key == pygame.K_ESCAPE:
-                        self.kill_player(self.current_level,
-                                         self.bullets)
                         self.show_start_screen()
+                        self.kill_player(self.current_level, self.bullets)
 
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_LEFT:
