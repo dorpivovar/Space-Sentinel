@@ -47,4 +47,4 @@
 * Учебник Яндекс лицея
 * ChatGPT
 * Youtube
-* editor.py взят от сюда - https://youtu.be/2gABYM5M0ww?si=bWkh74S6DqLiwBZo&t=8545
+* за основу editor.py взят код отсюда - https://youtu.be/2gABYM5M0ww?si=bWkh74S6DqLiwBZo&t=8545
