@@ -10,7 +10,7 @@
 * Escape - главное меню
 ### Как запустить:
 1. Скачайте проект как архив либо при помощи git clone.
-2. Установите [Python 3.12](https://www.python.org/downloads/release/python-3120/) и [Pygame 2.5.2](https://github.com/pygame/pygame).
+2. Установите [Python 3.12](https://www.python.org/downloads/release/python-3120/) и [Pygame 2.5.2](https://github.com/pygame/pygame) (работоспособность на версиях ниже не гарантирую).
 3. Запустите main.py
 ### Руководство программиста:
 1. main.py - основной файл
