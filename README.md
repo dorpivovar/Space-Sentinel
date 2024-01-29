@@ -47,4 +47,4 @@
 * Учебник Яндекс лицея
 * ChatGPT
 * Youtube
-*[Презентация](https://docs.google.com/presentation/d/1bPEEeFpcJFhpLLJNF7svViu2zZxcgZwDpJr0mq0bK1w/edit?usp=drivesdk)
+* [Презентация](https://docs.google.com/presentation/d/1bPEEeFpcJFhpLLJNF7svViu2zZxcgZwDpJr0mq0bK1w/edit?usp=drivesdk)
